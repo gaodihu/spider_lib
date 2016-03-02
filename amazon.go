@@ -28,7 +28,7 @@ var Amazon = &Spider{
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {
 
-			f, err := os.Open("amazon_list.txt")
+			f, err := os.Open("E:/go/src/github.com/henrylee2cn/pholcus/amazon_list.txt")
 			if err != nil {
 				Log.Debug("file err")
 				panic(err)
@@ -36,17 +36,18 @@ var Amazon = &Spider{
 			defer f.Close()
 			rd := bufio.NewReader(f)
 			for {
-				line, err := rd.ReadString('\n')
+				line,_, err := rd.ReadLine()
 				if err != nil || io.EOF == err {
-					Log.Debug("break")
-					break
-				}
-				line = strings.Trim(line, " \r\n")
-				Log.Debug(line)
-				if line != "" {
+					Log.Debug("error")
+            		break
+        		}
+
+				line_s := strings.Trim(string(line), " \r\n")
+				Log.Debug(line_s)
+				if line_s != "" {
 					ctx.AddQueue(
 						&context.Request{
-							Url:  line,
+							Url:  line_s,
 							Rule: "list",
 						},
 					)
@@ -275,10 +276,10 @@ var Amazon = &Spider{
 
 					// 结果存入Response中转
 					ctx.Output(map[int]interface{}{
-						0:  ctx.GetTemp("ASIN"),
+						0:  ctx.GetTemp("ASIN",""),
 						1:  name,
 						2:  price,
-						3:  ctx.GetTemp("FBA"),
+						3:  ctx.GetTemp("FBA",""),
 						4:  brand,
 						5:  reviews,
 						6:  avgRating,
@@ -297,7 +298,7 @@ var Amazon = &Spider{
 						19: productStatus,
 					})
 
-					ASIN := ctx.GetTemp("ASIN")
+					ASIN := ctx.GetTemp("ASIN","")
 					//reviews list
 
 					if reviewsLinkItem := query.Find("#revSum #summaryStars a"); reviewsLinkItem.Size() > 0 {
@@ -389,7 +390,7 @@ var Amazon = &Spider{
 						//offeringID := ""
 						offeringID, _ := s.Find("input[name^=offeringID]").Attr("value")
 
-						ASIN := ctx.GetTemp("ASIN")
+						ASIN := ctx.GetTemp("ASIN","")
 						// 结果存入Response中转
 						ctx.Output(map[int]interface{}{
 							0: ASIN,
@@ -411,7 +412,7 @@ var Amazon = &Spider{
 							Url:  nextUrl,
 							Rule: "buyList",
 							Temp: map[string]interface{}{
-								"ASIN": ctx.GetTemp("ASIN"),
+								"ASIN": ctx.GetTemp("ASIN",""),
 							},
 						},
 						)
@@ -466,7 +467,7 @@ var Amazon = &Spider{
 
 							// 结果存入Response中转
 							ctx.Output(map[int]interface{}{
-								0: ctx.GetTemp("ASIN"),
+								0: ctx.GetTemp("ASIN",""),
 								1: addDate,
 								2: star,
 								3: verifiedPurchase,
@@ -489,7 +490,7 @@ var Amazon = &Spider{
 							Url:  nextUrl,
 							Rule: "buyList",
 							Temp: map[string]interface{}{
-								"ASIN": ctx.GetTemp("ASIN"),
+								"ASIN": ctx.GetTemp("ASIN",""),
 							},
 						},
 						)

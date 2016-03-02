@@ -84,7 +84,7 @@ var Magento = &Spider{
 					src,_ := query.Html()
 					if strings.Contains(src,"/skin/frontend/") {
 						ctx.Output(map[int]interface{}{
-							0: ctx.GetTemp("Site"),
+							0: ctx.GetTemp("Site",""),
 							1: 1,
 						})
 					}
