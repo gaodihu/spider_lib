@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	// 其他包
-	// "fmt"
+	//"fmt"
 	// "math"
 	// "time"
 )
@@ -41,6 +41,7 @@ var Alexa = &Spider{
 		
 		Root: func(ctx *Context) {
 			for i:=0;i<200;i++ {
+				//fmt.Println("http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_"+strconv.Itoa(i)+".html")
 				ctx.AddQueue(&context.Request{Url: "http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_"+strconv.Itoa(i)+".html", Rule: "获取网站排名"})
 			}
 		},

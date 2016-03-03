@@ -60,11 +60,11 @@ var Magento = &Spider{
 			mycollection := db.C("Alexa网站排名__获取网站排名")
 			
 			result := Site{}
-			iter := mycollection.Find(nil).Sort("-rank").Limit(1).Iter()
+			iter := mycollection.Find(nil).Sort("rank").Skip(20000).Limit(10000).Iter()
 		  	for iter.Next(&result) {
-		    	//fmt.Printf("Result: %s\n", result.Site)
+		    	fmt.Printf("Result: %s\n", result.Site)
 				geturl := "http://www." +  result.Site
-				fmt.Println("Result: %s", geturl)
+				//fmt.Println("Result: %s", geturl)
 		    	ctx.AddQueue(&context.Request{Url: geturl, Rule: "ifMageto",Temp: map[string]interface{}{"Site":result.Site,},})
 		  	}
 			
