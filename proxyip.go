@@ -19,9 +19,8 @@ import (
 	// 字符串处理包
 	// "regexp"
 
-	"strings"
 	"strconv"
-
+	"strings"
 	// 其他包
 	// "fmt"
 	// "math"
@@ -32,20 +31,19 @@ func init() {
 	Proxyip.Register()
 }
 
-
 var Proxyip = &Spider{
 	Name:        "每日代理ip地址",
 	Description: "每日代理ip地址",
 
 	EnableCookie: false,
 	RuleTree: &RuleTree{
-		
+
 		Root: func(ctx *Context) {
-			
-			for i:=0;i<10;i++ {
-				ctx.AddQueue(&context.Request{Url: "http://www.ip181.com/daili/"+strconv.Itoa(i)+".html", Rule: "每日代理ip地址"})
+
+			for i := 0; i < 10; i++ {
+				ctx.AddQueue(&context.Request{Url: "http://www.ip181.com/daili/" + strconv.Itoa(i) + ".html", Rule: "每日代理ip地址"})
 			}
-			
+
 		},
 
 		Trunk: map[string]*Rule{
@@ -65,29 +63,25 @@ var Proxyip = &Spider{
 					lis := query.Find(".col-md-12 table tbody tr")
 					lis.Each(func(i int, s *goquery.Selection) {
 						ip := s.Find("td").Eq(0).Text()
-						ip = strings.Trim(ip," \n\r")
-						
+						ip = strings.Trim(ip, " \n\r")
+
 						port := s.Find("td").Eq(1).Text()
-						port = strings.Trim(port," \n\r")
-						
+						port = strings.Trim(port, " \n\r")
+
 						anonymous := s.Find("td").Eq(2).Text()
-						anonymous = strings.Trim(anonymous," \n\r")
-						
-						
+						anonymous = strings.Trim(anonymous, " \n\r")
+
 						proxy_type := s.Find("td").Eq(3).Text()
-						proxy_type = strings.Trim(proxy_type," \n\r")
-						
-						
+						proxy_type = strings.Trim(proxy_type, " \n\r")
+
 						response := s.Find("td").Eq(4).Text()
-						response = strings.Trim(response," \n\r")
-						
+						response = strings.Trim(response, " \n\r")
+
 						address := s.Find("td").Eq(5).Text()
-						address = strings.Trim(address," \n\r")						
-						
-						
+						address = strings.Trim(address, " \n\r")
+
 						url := "http://" + ip + ":" + port
-						
-						
+
 						ctx.Output(map[int]interface{}{
 							0: ip,
 							1: port,
@@ -97,11 +91,10 @@ var Proxyip = &Spider{
 							5: address,
 							6: url,
 						})
-						
+
 					})
 				},
 			},
-
 		},
 	},
 }

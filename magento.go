@@ -33,12 +33,12 @@ func init() {
 	Magento.Register()
 }
 
-type Site struct{
-	Url string  `bson:"Url"` 
-	ParentUrl string `bson:"ParentUrl"` 
-	DownloadTime string `bson:"DownloadTime"` 
-	Rank string  `bson:"rank"`
-	Site	 string  `bson:"site"`
+type Site struct {
+	Url          string `bson:"Url"`
+	ParentUrl    string `bson:"ParentUrl"`
+	DownloadTime string `bson:"DownloadTime"`
+	Rank         string `bson:"rank"`
+	Site         string `bson:"site"`
 }
 
 var Magento = &Spider{
@@ -47,28 +47,27 @@ var Magento = &Spider{
 
 	EnableCookie: false,
 	RuleTree: &RuleTree{
-		
+
 		Root: func(ctx *Context) {
-			
-			session,err := mgo.Dial("172.168.90.236:27017")
+
+			session, err := mgo.Dial("172.168.90.236:27017")
 			if err != nil {
 				panic(err)
 			}
 			defer session.Close()
-			session.SetMode(mgo.Monotonic,true)
+			session.SetMode(mgo.Monotonic, true)
 			db := session.DB("pholcus")
 			mycollection := db.C("Alexa网站排名__获取网站排名")
-			
+
 			result := Site{}
 			iter := mycollection.Find(nil).Sort("rank").Skip(20000).Limit(10000).Iter()
-		  	for iter.Next(&result) {
-		    	fmt.Printf("Result: %s\n", result.Site)
-				geturl := "http://www." +  result.Site
+			for iter.Next(&result) {
+				fmt.Printf("Result: %s\n", result.Site)
+				geturl := "http://www." + result.Site
 				//fmt.Println("Result: %s", geturl)
-		    	ctx.AddQueue(&context.Request{Url: geturl, Rule: "ifMageto",Temp: map[string]interface{}{"Site":result.Site,},})
-		  	}
-			
-			
+				ctx.AddQueue(&context.Request{Url: geturl, Rule: "ifMageto", Temp: map[string]interface{}{"Site": result.Site}})
+			}
+
 		},
 
 		Trunk: map[string]*Rule{
@@ -77,21 +76,19 @@ var Magento = &Spider{
 				ItemFields: []string{
 					"site",
 					"if",
-					
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
-					src,_ := query.Html()
-					if strings.Contains(src,"/skin/frontend/") {
+					src, _ := query.Html()
+					if strings.Contains(src, "/skin/frontend/") {
 						ctx.Output(map[int]interface{}{
-							0: ctx.GetTemp("Site",""),
+							0: ctx.GetTemp("Site", ""),
 							1: 1,
 						})
 					}
 
 				},
 			},
-
 		},
 	},
 }

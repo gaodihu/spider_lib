@@ -20,7 +20,6 @@ import (
 	// "regexp"
 	"strconv"
 	"strings"
-
 	// 其他包
 	//"fmt"
 	// "math"
@@ -31,18 +30,17 @@ func init() {
 	Alexa.Register()
 }
 
-
 var Alexa = &Spider{
 	Name:        "Alexa网站排名",
 	Description: "Alexa网站排名,前10万名",
 
 	EnableCookie: false,
 	RuleTree: &RuleTree{
-		
+
 		Root: func(ctx *Context) {
-			for i:=0;i<200;i++ {
+			for i := 0; i < 200; i++ {
 				//fmt.Println("http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_"+strconv.Itoa(i)+".html")
-				ctx.AddQueue(&context.Request{Url: "http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_"+strconv.Itoa(i)+".html", Rule: "获取网站排名"})
+				ctx.AddQueue(&context.Request{Url: "http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_" + strconv.Itoa(i) + ".html", Rule: "获取网站排名"})
 			}
 		},
 
@@ -52,26 +50,24 @@ var Alexa = &Spider{
 				ItemFields: []string{
 					"rank",
 					"site",
-					
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					lis := query.Find("#Table-Uno tbody tr")
 					lis.Each(func(i int, s *goquery.Selection) {
 						rank := s.Find("td").Eq(0).Text()
-						rank = strings.Trim(rank," \n\r")
+						rank = strings.Trim(rank, " \n\r")
 						site := s.Find("td").Eq(1).Text()
-						site = strings.Trim(site," \n\r")
-						
+						site = strings.Trim(site, " \n\r")
+
 						ctx.Output(map[int]interface{}{
 							0: rank,
 							1: site,
 						})
-						
+
 					})
 				},
 			},
-
 		},
 	},
 }
