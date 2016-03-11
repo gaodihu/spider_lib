@@ -57,7 +57,7 @@ var Tomtop = &Spider{
 			*/
 
 			//base_url := "http://www.tomtop.com/product/freeshipping?limit=20&p=510&category="
-			for i := 1; i < 2; i++ {
+			for i := 1; i < 512; i++ {
 				url := "http://www.tomtop.com/product/freeshipping?limit=20&p=" + strconv.Itoa(i) + "&category="
 
 				ctx.AddQueue(
@@ -86,7 +86,7 @@ var Tomtop = &Spider{
 
 							ctx.AddQueue(
 								&context.Request{
-									Url:   "http://www.tomtop.com/" + url,
+									Url:   "http://www.tomtop.com" + url,
 									Rule: "product",
 								},
 							)
@@ -138,10 +138,10 @@ var Tomtop = &Spider{
 							cat1 = cat
 						}
 						if index == 2 {
-							cat1 = cat
+							cat2 = cat
 						}
 						if index == 3 {
-							cat1 = cat
+							cat3 = cat
 						}
 					})
 					shippingFrom := ""
@@ -152,16 +152,29 @@ var Tomtop = &Spider{
 
 					shippingWeight := ""
 					//weight := ""
-					if strings.Contains(desc_text, "Package weight") {
-
-					} else if strings.Contains(desc_text, "Item weight") {
-
+					re3,_ := regexp.Compile(`(?i)Package(\s*)weight(\D*)([\d\.]+)(\s*)g`)
+					re4,_ := regexp.Compile(`(?i)Item(\s*)weight(\D*)([\d\.]+)(\s*)g`)
+					re5,_ := regexp.Compile(`(?i)weight(\D*)([\d\.]+)(\s*)g`)
+					if weightArr := re3.FindAllStringSubmatch(desc_text,-1); weightArr != nil{
+						fmt.Println("w 1")
+						fmt.Println(weightArr)
+						shippingWeight = weightArr[0][3]
+					} else if weightArr2 := re4.FindAllStringSubmatch(desc_text,-1); weightArr2 != nil {
+						fmt.Println("w 2")
+						fmt.Println(weightArr2)
+						shippingWeight = weightArr2[0][3]
+					}else if weightArr3 := re5.FindAllStringSubmatch(desc_text,-1); weightArr3 != nil{
+						fmt.Println("w 3")
+						fmt.Println(weightArr3)
+						shippingWeight = weightArr3[0][2]
 					}
+					fmt.Println(shippingWeight)
+					
 					
 					query.Find(".productSmallPic img").Each(func(index int, s *goquery.Selection) {
 						image_url,_ := s.Attr("src")
 						image_url = strings.Replace(image_url, "/60/60/", "/2000/2000/",-1)
-						image_name := sku + "_" + strconv.Itoa(index) + ".jpg"
+						image_name := sku + "/" + sku + "_" + strconv.Itoa(index) + ".jpg"
 						fmt.Println(image_name)
 						ctx.AddQueue(&context.Request{
 							Url:         image_url,
@@ -171,6 +184,24 @@ var Tomtop = &Spider{
 							ConnTimeout: -1,
 						})
 					})
+					
+					query.Find("#description img").Each(func(index int, s  *goquery.Selection){
+						image_url,_ := s.Attr("src")
+						fmt.Println(image_url)
+						fmt.Println(index)
+						image_name := sku + "/_desc_" + strconv.Itoa(index) + ".jpg"
+						fmt.Println(image_name)
+						ctx.AddQueue(&context.Request{
+							Url:         image_url,
+							Rule:        "images",
+							Temp:        map[string]interface{}{"image": image_name},
+							Priority:    1,
+							ConnTimeout: -1,
+						})
+					})
+					
+					
+					
 					
 
 					// 结果存入Response中转
