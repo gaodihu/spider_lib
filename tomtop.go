@@ -7,10 +7,11 @@ import (
 	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	//. "github.com/henrylee2cn/pholcus/logs"
 
+	"fmt"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
-	"fmt"
 	//. "github.com/henrylee2cn/pholcus/spider/common"          //选用
 )
 
@@ -27,37 +28,37 @@ var Tomtop = &Spider{
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {
 			/*
-						f, err := os.Open("E:/go/src/github.com/henrylee2cn/pholcus/tomtop_list.txt")
-						if err != nil {
-							Log.Debug("file err")
-							panic(err)
-						}
-						defer f.Close()
-						rd := bufio.NewReader(f)
-						for {
-							line,_, err := rd.ReadLine()
-							if err != nil || io.EOF == err {
-								Log.Debug("error")
-			            		break
-			        		}
-
-							line_s := strings.Trim(string(line), " \r\n")
-							Log.Debug(line_s)
-							if line_s != "" {
-								ctx.AddQueue(
-									&context.Request{
-										Url:  line_s,
-										Rule: "list",
-									},
-								)
-								Log.Debug("task add")
+							f, err := os.Open("E:/go/src/github.com/henrylee2cn/pholcus/tomtop_list.txt")
+							if err != nil {
+								Log.Debug("file err")
+								panic(err)
 							}
+							defer f.Close()
+							rd := bufio.NewReader(f)
+							for {
+								line,_, err := rd.ReadLine()
+								if err != nil || io.EOF == err {
+									Log.Debug("error")
+				            		break
+				        		}
 
-						}
+								line_s := strings.Trim(string(line), " \r\n")
+								Log.Debug(line_s)
+								if line_s != "" {
+									ctx.AddQueue(
+										&context.Request{
+											Url:  line_s,
+											Rule: "list",
+										},
+									)
+									Log.Debug("task add")
+								}
+
+							}
 			*/
 
 			//base_url := "http://www.tomtop.com/product/freeshipping?limit=20&p=510&category="
-			for i := 1; i < 512; i++ {
+			for i := 1; i < 2; i++ {
 				url := "http://www.tomtop.com/product/freeshipping?limit=20&p=" + strconv.Itoa(i) + "&category="
 
 				ctx.AddQueue(
@@ -86,10 +87,56 @@ var Tomtop = &Spider{
 
 							ctx.AddQueue(
 								&context.Request{
-									Url:   "http://www.tomtop.com" + url,
-									Rule: "product",
+									Url:         "http://www.tomtop.com" + url,
+									Rule:        "product",
+									Priority:    1,
+									ConnTimeout: -1,
+									Temp:        map[string]interface{}{"l": "en"},
 								},
 							)
+							//de
+							ctx.AddQueue(
+								&context.Request{
+									Url:         "http://de.tomtop.com" + url,
+									Rule:        "product",
+									Priority:    1,
+									ConnTimeout: -1,
+									Temp:        map[string]interface{}{"l": "de"},
+								},
+							)
+							//fr
+							ctx.AddQueue(
+								&context.Request{
+									Url:         "http://fr.tomtop.com" + url,
+									Rule:        "product",
+									Priority:    1,
+									ConnTimeout: -1,
+									Temp:        map[string]interface{}{"l": "fr"},
+								},
+							)
+							//es
+							ctx.AddQueue(
+								&context.Request{
+									Url:         "http://es.tomtop.com" + url,
+									Rule:        "product",
+									Priority:    1,
+									ConnTimeout: -1,
+									Temp:        map[string]interface{}{"l": "es"},
+								},
+							)
+
+							//it
+							ctx.AddQueue(
+								&context.Request{
+									Url:         "http://it.tomtop.com" + url,
+									Rule:        "product",
+									Priority:    1,
+									ConnTimeout: -1,
+									Temp:        map[string]interface{}{"l": "it"},
+								},
+							)
+							//
+
 						}
 
 					})
@@ -100,6 +147,7 @@ var Tomtop = &Spider{
 				//注意：有无字段语义和是否输出数据必须保持一致
 				ItemFields: []string{
 					"sku",
+					"lang",
 					"name",
 					"desc",
 					"price",
@@ -112,6 +160,8 @@ var Tomtop = &Spider{
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					//src, _ := query.Html()
+					l := ctx.GetTemp("l", "")
+					lang := l
 
 					name := query.Find(".showInformation h1").Text()
 					sku := ""
@@ -120,14 +170,14 @@ var Tomtop = &Spider{
 					if skuArr != nil && len(skuArr) > 0 {
 						sku = skuArr[0][1]
 					}
-					re2,_ := regexp.Compile(`\(\s*Item\#\:.*`)
-					name = re2.ReplaceAllString(name,"")
-					name = strings.Trim(name," ")
-					
+					re2, _ := regexp.Compile(`\(\s*Item\#\:.*`)
+					name = re2.ReplaceAllString(name, "")
+					name = strings.Trim(name, " ")
+
 					fmt.Println(sku)
 					price := query.Find("#detailPrice").Text()
 
-					desc,_ := query.Find("#description").Html()
+					desc, _ := query.Find("#description").Html()
 
 					cat1 := ""
 					cat2 := ""
@@ -152,69 +202,68 @@ var Tomtop = &Spider{
 
 					shippingWeight := ""
 					//weight := ""
-					re3,_ := regexp.Compile(`(?i)Package(\s*)weight(\D*)([\d\.]+)(\s*)g`)
-					re4,_ := regexp.Compile(`(?i)Item(\s*)weight(\D*)([\d\.]+)(\s*)g`)
-					re5,_ := regexp.Compile(`(?i)weight(\D*)([\d\.]+)(\s*)g`)
-					if weightArr := re3.FindAllStringSubmatch(desc_text,-1); weightArr != nil{
+					re3, _ := regexp.Compile(`(?i)Package(\s*)weight(\D*)([\d\.]+)(\s*)g`)
+					re4, _ := regexp.Compile(`(?i)Item(\s*)weight(\D*)([\d\.]+)(\s*)g`)
+					re5, _ := regexp.Compile(`(?i)weight(\D*)([\d\.]+)(\s*)g`)
+					if weightArr := re3.FindAllStringSubmatch(desc_text, -1); weightArr != nil {
 						fmt.Println("w 1")
 						fmt.Println(weightArr)
 						shippingWeight = weightArr[0][3]
-					} else if weightArr2 := re4.FindAllStringSubmatch(desc_text,-1); weightArr2 != nil {
+					} else if weightArr2 := re4.FindAllStringSubmatch(desc_text, -1); weightArr2 != nil {
 						fmt.Println("w 2")
 						fmt.Println(weightArr2)
 						shippingWeight = weightArr2[0][3]
-					}else if weightArr3 := re5.FindAllStringSubmatch(desc_text,-1); weightArr3 != nil{
+					} else if weightArr3 := re5.FindAllStringSubmatch(desc_text, -1); weightArr3 != nil {
 						fmt.Println("w 3")
 						fmt.Println(weightArr3)
 						shippingWeight = weightArr3[0][2]
 					}
 					fmt.Println(shippingWeight)
-					
-					
-					query.Find(".productSmallPic img").Each(func(index int, s *goquery.Selection) {
-						image_url,_ := s.Attr("src")
-						image_url = strings.Replace(image_url, "/60/60/", "/2000/2000/",-1)
-						image_name := sku + "/" + sku + "_" + strconv.Itoa(index) + ".jpg"
-						fmt.Println(image_name)
-						ctx.AddQueue(&context.Request{
-							Url:         image_url,
-							Rule:        "images",
-							Temp:        map[string]interface{}{"image": image_name},
-							Priority:    1,
-							ConnTimeout: -1,
+
+					if lang == "en" {
+						query.Find(".productSmallPic img").Each(func(index int, s *goquery.Selection) {
+							image_url, _ := s.Attr("src")
+							image_url = strings.Replace(image_url, "/60/60/", "/2000/2000/", -1)
+							image_name := sku + "/" + sku + "_" + strconv.Itoa(index) + ".jpg"
+							fmt.Println(image_name)
+							ctx.AddQueue(&context.Request{
+								Url:         image_url,
+								Rule:        "images",
+								Temp:        map[string]interface{}{"image": image_name},
+								Priority:    10,
+								ConnTimeout: -1,
+							})
 						})
-					})
-					
-					query.Find("#description img").Each(func(index int, s  *goquery.Selection){
-						image_url,_ := s.Attr("src")
-						fmt.Println(image_url)
-						fmt.Println(index)
-						image_name := sku + "/_desc_" + strconv.Itoa(index) + ".jpg"
-						fmt.Println(image_name)
-						ctx.AddQueue(&context.Request{
-							Url:         image_url,
-							Rule:        "images",
-							Temp:        map[string]interface{}{"image": image_name},
-							Priority:    1,
-							ConnTimeout: -1,
+
+						query.Find("#description img").Each(func(index int, s *goquery.Selection) {
+							image_url, _ := s.Attr("src")
+							fmt.Println(image_url)
+							fmt.Println(index)
+							image_name := "sku/" + path.Base(image_url)
+							//image_name := sku + "/desc_" + strconv.Itoa(index) + ".jpg"
+							fmt.Println(image_name)
+							ctx.AddQueue(&context.Request{
+								Url:         image_url,
+								Rule:        "images",
+								Temp:        map[string]interface{}{"image": image_name},
+								Priority:    10,
+								ConnTimeout: -1,
+							})
 						})
-					})
-					
-					
-					
-					
+					}
 
 					// 结果存入Response中转
 					ctx.Output(map[int]interface{}{
 						0: sku,
-						1: name,
-						2: desc,
-						3: price,
-						4: shippingWeight,
-						5: cat1,
-						6: cat2,
-						7: cat3,
-						8: shippingFrom,
+						1: lang,
+						2: name,
+						3: desc,
+						4: price,
+						5: shippingWeight,
+						6: cat1,
+						7: cat2,
+						8: cat3,
+						9: shippingFrom,
 					})
 
 				},
