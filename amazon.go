@@ -4,7 +4,7 @@ package spider_lib
 import (
 	"bufio"
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
+	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
 	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	. "github.com/henrylee2cn/pholcus/logs"
 	"io"
