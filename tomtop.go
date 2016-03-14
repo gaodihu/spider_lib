@@ -46,7 +46,7 @@ var Tomtop = &Spider{
 								Log.Debug(line_s)
 								if line_s != "" {
 									ctx.AddQueue(
-										&context.Request{
+										&request.Request{
 											Url:  line_s,
 											Rule: "list",
 										},
@@ -62,7 +62,7 @@ var Tomtop = &Spider{
 				url := "http://www.tomtop.com/product/freeshipping?limit=20&p=" + strconv.Itoa(i) + "&category="
 
 				ctx.AddQueue(
-					&context.Request{
+					&request.Request{
 						Url:  url,
 						Rule: "list",
 					},
@@ -86,7 +86,7 @@ var Tomtop = &Spider{
 						if url, ok := s.Attr("href"); ok {
 
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:         "http://www.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    1,
@@ -96,7 +96,7 @@ var Tomtop = &Spider{
 							)
 							//de
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:         "http://de.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    1,
@@ -106,7 +106,7 @@ var Tomtop = &Spider{
 							)
 							//fr
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:         "http://fr.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    1,
@@ -116,7 +116,7 @@ var Tomtop = &Spider{
 							)
 							//es
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:         "http://es.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    1,
@@ -127,7 +127,7 @@ var Tomtop = &Spider{
 
 							//it
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:         "http://it.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    1,
@@ -226,7 +226,7 @@ var Tomtop = &Spider{
 							image_url = strings.Replace(image_url, "/60/60/", "/2000/2000/", -1)
 							image_name := sku + "/" + sku + "_" + strconv.Itoa(index) + ".jpg"
 							fmt.Println(image_name)
-							ctx.AddQueue(&context.Request{
+							ctx.AddQueue(&request.Request{
 								Url:         image_url,
 								Rule:        "images",
 								Temp:        map[string]interface{}{"image": image_name},
@@ -242,7 +242,7 @@ var Tomtop = &Spider{
 							image_name := "sku/" + path.Base(image_url)
 							//image_name := sku + "/desc_" + strconv.Itoa(index) + ".jpg"
 							fmt.Println(image_name)
-							ctx.AddQueue(&context.Request{
+							ctx.AddQueue(&request.Request{
 								Url:         image_url,
 								Rule:        "images",
 								Temp:        map[string]interface{}{"image": image_name},
