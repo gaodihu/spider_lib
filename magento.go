@@ -65,7 +65,7 @@ var Magento = &Spider{
 				fmt.Printf("Result: %s\n", result.Site)
 				geturl := "http://www." + result.Site
 				//fmt.Println("Result: %s", geturl)
-				ctx.AddQueue(&context.Request{Url: geturl, Rule: "ifMageto", Temp: map[string]interface{}{"Site": result.Site}})
+				ctx.AddQueue(&request.Request{Url: geturl, Rule: "ifMageto", Temp: map[string]interface{}{"Site": result.Site}})
 			}
 
 		},

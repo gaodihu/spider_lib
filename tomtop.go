@@ -58,8 +58,8 @@ var Tomtop = &Spider{
 			*/
 
 			//base_url := "http://www.tomtop.com/product/freeshipping?limit=20&p=510&category="
-			for i := 1; i < 2; i++ {
-				url := "http://www.tomtop.com/product/freeshipping?limit=20&p=" + strconv.Itoa(i) + "&category="
+			for i := 1; i <= 170; i++ {
+				url := "http://www.tomtop.com/product/freeshipping?limit=60&p=" + strconv.Itoa(i) + "&category="
 
 				ctx.AddQueue(
 					&request.Request{
@@ -89,7 +89,7 @@ var Tomtop = &Spider{
 								&request.Request{
 									Url:         "http://www.tomtop.com" + url,
 									Rule:        "product",
-									Priority:    1,
+									Priority:    100,
 									ConnTimeout: -1,
 									Temp:        map[string]interface{}{"l": "en"},
 								},
@@ -99,7 +99,7 @@ var Tomtop = &Spider{
 								&request.Request{
 									Url:         "http://de.tomtop.com" + url,
 									Rule:        "product",
-									Priority:    1,
+									Priority:    100,
 									ConnTimeout: -1,
 									Temp:        map[string]interface{}{"l": "de"},
 								},
@@ -109,7 +109,7 @@ var Tomtop = &Spider{
 								&request.Request{
 									Url:         "http://fr.tomtop.com" + url,
 									Rule:        "product",
-									Priority:    1,
+									Priority:    100,
 									ConnTimeout: -1,
 									Temp:        map[string]interface{}{"l": "fr"},
 								},
@@ -119,7 +119,7 @@ var Tomtop = &Spider{
 								&request.Request{
 									Url:         "http://es.tomtop.com" + url,
 									Rule:        "product",
-									Priority:    1,
+									Priority:    100,
 									ConnTimeout: -1,
 									Temp:        map[string]interface{}{"l": "es"},
 								},
@@ -130,7 +130,7 @@ var Tomtop = &Spider{
 								&request.Request{
 									Url:         "http://it.tomtop.com" + url,
 									Rule:        "product",
-									Priority:    1,
+									Priority:    100,
 									ConnTimeout: -1,
 									Temp:        map[string]interface{}{"l": "it"},
 								},
@@ -239,7 +239,7 @@ var Tomtop = &Spider{
 							image_url, _ := s.Attr("src")
 							fmt.Println(image_url)
 							fmt.Println(index)
-							image_name := "sku/" + path.Base(image_url)
+							image_name := sku + "/" + path.Base(image_url)
 							//image_name := sku + "/desc_" + strconv.Itoa(index) + ".jpg"
 							fmt.Println(image_name)
 							ctx.AddQueue(&request.Request{

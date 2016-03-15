@@ -41,7 +41,7 @@ var Proxyip = &Spider{
 		Root: func(ctx *Context) {
 
 			for i := 0; i < 10; i++ {
-				ctx.AddQueue(&context.Request{Url: "http://www.ip181.com/daili/" + strconv.Itoa(i) + ".html", Rule: "每日代理ip地址"})
+				ctx.AddQueue(&request.Request{Url: "http://www.ip181.com/daili/" + strconv.Itoa(i) + ".html", Rule: "每日代理ip地址"})
 			}
 
 		},
