@@ -3,7 +3,7 @@ package spider_lib
 // 基础包
 import (
 	//"github.com/PuerkitoBio/goquery"                        //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context/request" //必需
+	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
 	// "github.com/henrylee2cn/pholcus/logs"              //信息输出
 	. "github.com/henrylee2cn/pholcus/app/spider" //必需
 	// . "github.com/henrylee2cn/pholcus/app/spider/common" //选用
@@ -65,7 +65,7 @@ var Magento = &Spider{
 				fmt.Printf("Result: %s\n", result.Site)
 				geturl := "http://www." + result.Site
 				//fmt.Println("Result: %s", geturl)
-				ctx.AddQueue(&request.Request{Url: geturl, Rule: "ifMageto", Temp: map[string]interface{}{"Site": result.Site}})
+				ctx.AddQueue(&context.Request{Url: geturl, Rule: "ifMageto", Temp: map[string]interface{}{"Site": result.Site}})
 			}
 
 		},

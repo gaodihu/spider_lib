@@ -2,9 +2,9 @@ package spider_lib
 
 // 基础包
 import (
-	"github.com/PuerkitoBio/goquery"                                //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context/request" //必需
-	. "github.com/henrylee2cn/pholcus/app/spider"                   //必需
+	"github.com/PuerkitoBio/goquery"                        //DOM解析
+	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
+	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	//. "github.com/henrylee2cn/pholcus/logs"
 
 	"fmt"
@@ -46,7 +46,7 @@ var Tomtop = &Spider{
 								Log.Debug(line_s)
 								if line_s != "" {
 									ctx.AddQueue(
-										&request.Request{
+										&context.Request{
 											Url:  line_s,
 											Rule: "list",
 										},
@@ -62,7 +62,7 @@ var Tomtop = &Spider{
 				url := "http://www.tomtop.com/product/freeshipping?limit=60&p=" + strconv.Itoa(i) + "&category="
 
 				ctx.AddQueue(
-					&request.Request{
+					&context.Request{
 						Url:  url,
 						Rule: "list",
 					},
@@ -86,7 +86,7 @@ var Tomtop = &Spider{
 						if url, ok := s.Attr("href"); ok {
 
 							ctx.AddQueue(
-								&request.Request{
+								&context.Request{
 									Url:         "http://www.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    100,
@@ -96,7 +96,7 @@ var Tomtop = &Spider{
 							)
 							//de
 							ctx.AddQueue(
-								&request.Request{
+								&context.Request{
 									Url:         "http://de.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    100,
@@ -106,7 +106,7 @@ var Tomtop = &Spider{
 							)
 							//fr
 							ctx.AddQueue(
-								&request.Request{
+								&context.Request{
 									Url:         "http://fr.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    100,
@@ -116,7 +116,7 @@ var Tomtop = &Spider{
 							)
 							//es
 							ctx.AddQueue(
-								&request.Request{
+								&context.Request{
 									Url:         "http://es.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    100,
@@ -127,7 +127,7 @@ var Tomtop = &Spider{
 
 							//it
 							ctx.AddQueue(
-								&request.Request{
+								&context.Request{
 									Url:         "http://it.tomtop.com" + url,
 									Rule:        "product",
 									Priority:    100,
@@ -226,7 +226,7 @@ var Tomtop = &Spider{
 							image_url = strings.Replace(image_url, "/60/60/", "/2000/2000/", -1)
 							image_name := sku + "/" + sku + "_" + strconv.Itoa(index) + ".jpg"
 							fmt.Println(image_name)
-							ctx.AddQueue(&request.Request{
+							ctx.AddQueue(&context.Request{
 								Url:         image_url,
 								Rule:        "images",
 								Temp:        map[string]interface{}{"image": image_name},
@@ -242,7 +242,7 @@ var Tomtop = &Spider{
 							image_name := sku + "/" + path.Base(image_url)
 							//image_name := sku + "/desc_" + strconv.Itoa(index) + ".jpg"
 							fmt.Println(image_name)
-							ctx.AddQueue(&request.Request{
+							ctx.AddQueue(&context.Request{
 								Url:         image_url,
 								Rule:        "images",
 								Temp:        map[string]interface{}{"image": image_name},

@@ -2,8 +2,8 @@ package spider_lib
 
 // 基础包
 import (
-	"github.com/PuerkitoBio/goquery"                                //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context/request" //必需
+	"github.com/PuerkitoBio/goquery"                        //DOM解析
+	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
 	// "github.com/henrylee2cn/pholcus/logs"              //信息输出
 	. "github.com/henrylee2cn/pholcus/app/spider" //必需
 	// . "github.com/henrylee2cn/pholcus/app/spider/common" //选用
@@ -40,7 +40,7 @@ var Alexa = &Spider{
 		Root: func(ctx *Context) {
 			for i := 0; i < 200; i++ {
 				//fmt.Println("http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_"+strconv.Itoa(i)+".html")
-				ctx.AddQueue(&request.Request{Url: "http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_" + strconv.Itoa(i) + ".html", Rule: "获取网站排名"})
+				ctx.AddQueue(&context.Request{Url: "http://ip-173-201-142-193.ip.secureserver.net/Alexa/Alexa_" + strconv.Itoa(i) + ".html", Rule: "获取网站排名"})
 			}
 		},
 
