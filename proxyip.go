@@ -3,7 +3,7 @@ package spider_lib
 // 基础包
 import (
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
+	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
 	// "github.com/henrylee2cn/pholcus/logs"              //信息输出
 	. "github.com/henrylee2cn/pholcus/app/spider" //必需
 	// . "github.com/henrylee2cn/pholcus/app/spider/common" //选用
@@ -41,7 +41,7 @@ var Proxyip = &Spider{
 		Root: func(ctx *Context) {
 
 			for i := 0; i < 10; i++ {
-				ctx.AddQueue(&context.Request{Url: "http://www.ip181.com/daili/" + strconv.Itoa(i) + ".html", Rule: "每日代理ip地址"})
+				ctx.AddQueue(&request.Request{Url: "http://www.ip181.com/daili/" + strconv.Itoa(i) + ".html", Rule: "每日代理ip地址"})
 			}
 
 		},

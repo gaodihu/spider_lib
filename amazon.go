@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
-	"github.com/henrylee2cn/pholcus/app/downloader/context" //必需
+	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
 	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	. "github.com/henrylee2cn/pholcus/logs"
 	//. "github.com/henrylee2cn/pholcus/spider/common"          //选用
@@ -46,7 +46,7 @@ var Amazon = &Spider{
 				Log.Debug(line_s)
 				if line_s != "" {
 					ctx.AddQueue(
-						&context.Request{
+						&request.Request{
 							Url:  line_s,
 							Rule: "list",
 						},
@@ -57,7 +57,7 @@ var Amazon = &Spider{
 			}
 			/*
 				ctx.AddQueue(
-					&context.Request{
+					&request.Request{
 						Url:  "http://www.amazon.com/IPOW/b/ref=bl_dp_s_web_8287399011?ie=UTF8&node=8287399011&field-lbr_brands_browse-bin=IPOW",
 						Rule: "list",
 					},
@@ -65,7 +65,7 @@ var Amazon = &Spider{
 
 
 				ctx.AddQueue(
-					&context.Request{
+					&request.Request{
 						Url:  "http://www.amazon.com/iWG-Dual-slot-Flashlight-Battery-Standard/dp/B016Y4RYU4/ref=sr_1_2?ie=UTF8&qid=1449729556&sr=8-2&keywords=myled",
 						Rule: "product",
 					},
@@ -83,7 +83,7 @@ var Amazon = &Spider{
 
 					if next_page := query.Find("#pagnNextLink"); next_page.Size() > 0 {
 						if next_url, ok := next_page.Attr("href"); ok {
-							ctx.AddQueue(&context.Request{
+							ctx.AddQueue(&request.Request{
 								Url:  "http://www.amazon.com" + next_url,
 								Rule: "list",
 							},
@@ -105,7 +105,7 @@ var Amazon = &Spider{
 							//fmt.Println(url)
 							//fmt.Println(tit)
 							ctx.AddQueue(
-								&context.Request{
+								&request.Request{
 									Url:  url,
 									Rule: "product",
 									Temp: map[string]interface{}{
@@ -306,7 +306,7 @@ var Amazon = &Spider{
 							if strings.Index(reviewsLink, "www.amazon.com") == -1 {
 								reviewsLink = "http://www.amazon.com" + reviewsLink
 							}
-							ctx.AddQueue(&context.Request{
+							ctx.AddQueue(&request.Request{
 								Url:  reviewsLink,
 								Rule: "reviewsList",
 								Temp: map[string]interface{}{
@@ -325,7 +325,7 @@ var Amazon = &Spider{
 								tempMoreBuyingLink = "http://www.amazon.com" + tempMoreBuyingLink
 							}
 
-							ctx.AddQueue(&context.Request{
+							ctx.AddQueue(&request.Request{
 								Url:  tempMoreBuyingLink,
 								Rule: "buyList",
 								Temp: map[string]interface{}{
@@ -337,7 +337,7 @@ var Amazon = &Spider{
 						}
 					}
 					if store_url != "" {
-						ctx.AddQueue(&context.Request{
+						ctx.AddQueue(&request.Request{
 							Url:  "http://www.amazon.com" + store_url,
 							Rule: "store",
 							Temp: map[string]interface{}{
@@ -408,7 +408,7 @@ var Amazon = &Spider{
 						if !strings.Contains(nextUrl, "www.amazon.com") {
 							nextUrl = "http://www.amazon.com" + nextUrl
 						}
-						ctx.AddQueue(&context.Request{
+						ctx.AddQueue(&request.Request{
 							Url:  nextUrl,
 							Rule: "buyList",
 							Temp: map[string]interface{}{
@@ -486,7 +486,7 @@ var Amazon = &Spider{
 						if !strings.Contains(nextUrl, "www.amazon.com") {
 							nextUrl = "http://www.amazon.com" + nextUrl
 						}
-						ctx.AddQueue(&context.Request{
+						ctx.AddQueue(&request.Request{
 							Url:  nextUrl,
 							Rule: "buyList",
 							Temp: map[string]interface{}{
