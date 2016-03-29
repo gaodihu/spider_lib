@@ -56,22 +56,24 @@ var Amazon = &Spider{
 				}
 
 			}
+
 			/*
-				ctx.AddQueue(
-					&request.Request{
-						Url:  "http://www.amazon.com/IPOW/b/ref=bl_dp_s_web_8287399011?ie=UTF8&node=8287399011&field-lbr_brands_browse-bin=IPOW",
-						Rule: "list",
-					},
-				)
+					ctx.AddQueue(
+						&request.Request{
+							Url:  "http://www.amazon.com/IPOW/b/ref=bl_dp_s_web_8287399011?ie=UTF8&node=8287399011&field-lbr_brands_browse-bin=IPOW",
+							Rule: "list",
+						},
+					)
 
 
 				ctx.AddQueue(
 					&request.Request{
-						Url:  "http://www.amazon.com/iWG-Dual-slot-Flashlight-Battery-Standard/dp/B016Y4RYU4/ref=sr_1_2?ie=UTF8&qid=1449729556&sr=8-2&keywords=myled",
+						Url:  "http://www.amazon.com/Flowtron-BK-15D-Electronic-Insect-Coverage/dp/B00004R9VZ/ref=sr_1_2?s=lawn-garden&ie=UTF8&qid=1459232087&sr=1-2&keywords=bug+zappers+%7C+repellents+%7C+traps",
 						Rule: "product",
 					},
 				)
 			*/
+
 		},
 
 		Trunk: map[string]*Rule{
@@ -108,6 +110,9 @@ var Amazon = &Spider{
 							tit, _ := item.Attr("title")
 							//fmt.Println(url)
 							//fmt.Println(tit)
+							if !strings.Contains(url, "www.amazon.com") {
+								url = "http://www.amazon.com/" + url
+							}
 							ctx.AddQueue(
 								&request.Request{
 									Url:  url,
@@ -149,24 +154,31 @@ var Amazon = &Spider{
 					"mainImg",
 					"store",
 					"productStatus",
+					"discount",
+					"merchantID",
+					"storeID",
+					"length",
+					"width",
+					"height",
+					"html",
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					src, _ := query.Html()
+
+					//productStatus
 					productStatus := ""
 					if availability := query.Find("#availability"); availability.Size() > 0 {
 						availabilityText := availability.Text()
 						availabilityText = strings.ToLower(availabilityText)
 						productStatus = availabilityText
 						productStatus = strings.Trim(productStatus, " \n\r")
-						/*
-							if !strings.Contains(availabilityText, "in stock") {
-								return
-							}
-						*/
+
 					}
+					//name
 					name := query.Find("#productTitle").Text()
 
+					//price
 					price := ""
 					if priceblock_ourprice := query.Find("#priceblock_ourprice"); priceblock_ourprice.Size() > 0 {
 						price = priceblock_ourprice.Text()
@@ -177,16 +189,28 @@ var Amazon = &Spider{
 					if priceblock_dealprice := query.Find("#priceblock_dealprice"); priceblock_dealprice.Size() > 0 {
 						price = priceblock_dealprice.Text()
 					}
+					//discount
+					discount := ""
+					if discount_item := query.Find("#regularprice_savings"); discount_item.Size() > 0 {
+						discount_txt := discount_item.Text()
+						re_dis, _ := regexp.Compile(`\((\d+%)\)`)
+						discount_arr := re_dis.FindAllStringSubmatch(discount_txt, -1)
+						discount = discount_arr[0][1]
+					}
 
+					//brand
 					brand := query.Find("#brand").Text()
+
+					//reviews
 					reviews := ""
 					if summaryStars := query.Find("#summaryStars"); summaryStars.Size() > 0 {
-						reviews, _ = summaryStars.Html()
-						re, _ := regexp.Compile(`\<[\S\s]+?\>`)
-						reviews = re.ReplaceAllString(reviews, "")
-						reviews = strings.Replace(reviews, ",", "", -1)
-						reviews = strings.Trim(reviews, " \n\r")
+						reviews = summaryStars.Text()
+						re, _ := regexp.Compile(`([\d\.]+)`)
+						reviews_arr := re.FindAllStringSubmatch(reviews, -1)
+
+						reviews = reviews_arr[1][0]
 					}
+					//avgRating
 					avgRating := ""
 					if avgRatingItem := query.Find("#avgRating"); avgRatingItem.Size() > 0 {
 						avgRating, _ = avgRatingItem.Html()
@@ -195,6 +219,7 @@ var Amazon = &Spider{
 						avgRating = strings.Replace(avgRating, "out of 5 stars", "", -1)
 						avgRating = strings.Trim(avgRating, " \n\r")
 					}
+					//start5 start4 start3 start2 start1
 					star5Rating := ""
 					star4Rating := ""
 					star3Rating := ""
@@ -218,6 +243,7 @@ var Amazon = &Spider{
 							star1Rating = star1Rating_text
 						}
 					}
+					//mainRank subRank
 					mainRank := ""
 					mainRankCategory := ""
 					subRank := map[string]string{}
@@ -247,26 +273,26 @@ var Amazon = &Spider{
 						})
 
 					}
-
-					addDate := ""
-					if addDateItem := query.Find(".date-first-available"); addDateItem.Size() > 0 {
-						addDate = addDateItem.Find(".value").Text()
-					}
-					//<li><b> Date first available at Amazon.com:</b> October 8, 2014</li>
-					re, _ := regexp.Compile(`\<b\> Date first available at Amazon.com:\<\/b\> (.*)\<\/li\>`)
-					//src, _ := query.Html()
-					addDateArr := re.FindAllStringSubmatch(src, -1)
-					if addDateArr != nil && len(addDateArr) > 0 {
-						addDate = addDateArr[0][1]
-					}
+					/**解析产品数据***/
+					text := query.Text()
 
 					shippingWeight := ""
-					if shippingWeightItem := query.Find(".shipping-weight"); shippingWeightItem.Size() > 0 {
-						shippingWeight = shippingWeightItem.Find(".value").Text()
-						shippingWeight = strings.Replace(shippingWeight, "ounces (View shipping rates and policies)", "", -1)
-						shippingWeight = strings.Trim(shippingWeight, " \n\r")
+					shippingWeight_re, _ := regexp.Compile(`(?i)Shipping(\s*)Weight(\D*?)([\d\.]+)(\s*)`)
+					if shippingWeight_arr := shippingWeight_re.FindAllStringSubmatch(text, -1); shippingWeight_arr != nil {
+						shippingWeight = shippingWeight_arr[0][3]
+					}
+					//7.4 x 7 x 2 Length Width Height
+					dimensions_length := ""
+					dimensions_width := ""
+					dimensions_height := ""
+					dimensions_re, _ := regexp.Compile(`(?i)Dimensions(\D*?)([\d\.]+)(\s*)x(\s*)([\d\.]+)(\s*)x(\s*)([\d\.]+)`)
+					if dimensions_arr := dimensions_re.FindAllStringSubmatch(text, -1); dimensions_arr != nil {
+						dimensions_length = dimensions_arr[0][2]
+						dimensions_width = dimensions_arr[0][5]
+						dimensions_height = dimensions_arr[0][8]
 					}
 
+					//mainImg
 					mainImg, _ := query.Find("#landingImage").Attr("src")
 
 					//merchant-info
@@ -277,13 +303,38 @@ var Amazon = &Spider{
 						store_url, _ = store.Attr("href")
 						store_name = store.Text()
 					}
+					merchantID := ""
+					if merchantID_item := query.Find("#merchantID"); merchantID_item.Size() > 0 {
+						if merchantID_text, ok := merchantID_item.Attr("value"); ok {
+							merchantID = merchantID_text
+						}
+					}
+					storeID := ""
+					if storeID_item := query.Find("#storeID"); storeID_item.Size() > 0 {
+						if storeID_text, ok := storeID_item.Attr("value"); ok {
+							storeID = storeID_text
+						}
+					}
 
+					FBA := ctx.GetTemp("FBA", "")
+
+					ASIN := ""
+
+					ASIN_item := query.Find("#ASIN")
+					if ASIN_item.Size() > 0 {
+						ASIN_text, ok := ASIN_item.Attr("value")
+						if ok {
+							ASIN = ASIN_text
+						}
+					}
+					//}
+					addDate := ""
 					// 结果存入Response中转
 					ctx.Output(map[int]interface{}{
-						0:  ctx.GetTemp("ASIN", ""),
+						0:  ASIN,
 						1:  name,
 						2:  price,
-						3:  ctx.GetTemp("FBA", ""),
+						3:  FBA,
 						4:  brand,
 						5:  reviews,
 						6:  avgRating,
@@ -300,9 +351,15 @@ var Amazon = &Spider{
 						17: mainImg,
 						18: store_name,
 						19: productStatus,
+						20: discount,
+						21: merchantID,
+						22: storeID,
+						23: dimensions_length,
+						24: dimensions_width,
+						25: dimensions_height,
+						26: src,
 					})
 
-					ASIN := ctx.GetTemp("ASIN", "")
 					//reviews list
 
 					if reviewsLinkItem := query.Find("#revSum #summaryStars a"); reviewsLinkItem.Size() > 0 {
@@ -340,15 +397,49 @@ var Amazon = &Spider{
 
 						}
 					}
+
+					//store 数据
 					if store_url != "" {
+						if !strings.Contains(store_url, "www.amazon.com") {
+							store_url = "http://www.amazon.com" + store_url
+						}
 						ctx.AddQueue(&request.Request{
-							Url:  "http://www.amazon.com" + store_url,
+							Url:  store_url,
 							Rule: "store",
 							Temp: map[string]interface{}{
 								"ASIN": ASIN,
 							},
 						})
 					}
+
+					//存储源码
+					//ctx.Parse("product_html")
+
+					//product item
+					query.Find("#twister_feature_div  li").Each(func(index int, s *goquery.Selection) {
+						dataurl, ok := s.Attr("data-dp-url")
+						_ASIN, _ := s.Attr("data-defaultasin")
+						if ok {
+							if dataurl != "" {
+								if !strings.Contains(dataurl, "www.amazon.com") {
+									dataurl = "http://www.amazon.com" + dataurl
+								}
+								ctx.AddQueue(
+									&request.Request{
+										Url:  dataurl,
+										Rule: "product",
+										Temp: map[string]interface{}{
+											"ASIN":    _ASIN,
+											"type":    "",
+											"baseUrl": dataurl,
+											"FBA":     "",
+										},
+									},
+								)
+
+							}
+						}
+					})
 
 				},
 			},
@@ -599,6 +690,22 @@ var Amazon = &Spider{
 
 					}
 
+				},
+			},
+			"product_html": {
+				ItemFields: []string{
+					"pageurl",
+					"html",
+				},
+				ParseFunc: func(ctx *Context) {
+					pageurl := ctx.GetHost()
+					html, _ := ctx.GetDom().Html()
+
+					// 结果存入Response中转
+					ctx.Output(map[int]interface{}{
+						0: pageurl,
+						1: html,
+					})
 				},
 			},
 		},
