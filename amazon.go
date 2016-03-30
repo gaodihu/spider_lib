@@ -5,8 +5,10 @@ import (
 	"bufio"
 	//"fmt"
 	"io"
+
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
@@ -50,54 +52,95 @@ var Amazon = &Spider{
 					ctx.AddQueue(
 						&request.Request{
 							Url:  line_s,
-							Rule: "list",
+							Rule: "listpages",
 						},
 					)
 					Log.Debug("task add")
 				}
 
 			}
-
 			/*
-					ctx.AddQueue(
-						&request.Request{
-							Url:  "http://www.amazon.com/IPOW/b/ref=bl_dp_s_web_8287399011?ie=UTF8&node=8287399011&field-lbr_brands_browse-bin=IPOW",
-							Rule: "list",
-						},
-					)
-
-
 				ctx.AddQueue(
+
 					&request.Request{
-						Url:  "http://www.amazon.com/Flowtron-BK-15D-Electronic-Insect-Coverage/dp/B00004R9VZ/ref=sr_1_2?s=lawn-garden&ie=UTF8&qid=1459232087&sr=1-2&keywords=bug+zappers+%7C+repellents+%7C+traps",
-						Rule: "product",
+						Url:  "http://www.amazon.com/IPOW/b/ref=bl_dp_s_web_8287399011?ie=UTF8&node=8287399011&field-lbr_brands_browse-bin=IPOW",
+						Rule: "list",
 					},
 				)
+
+
+					ctx.AddQueue(
+						&request.Request{
+							Url:  "http://www.amazon.com/Flowtron-BK-15D-Electronic-Insect-Coverage/dp/B00004R9VZ/ref=sr_1_2?s=lawn-garden&ie=UTF8&qid=1459232087&sr=1-2&keywords=bug+zappers+%7C+repellents+%7C+traps",
+							Rule: "product",
+						},
+					)
 			*/
 
 		},
 
 		Trunk: map[string]*Rule{
+			"listpages": {
+				ParseFunc: func(ctx *Context) {
+					query := ctx.GetDom()
+
+					total := 0
+					if total_item := query.Find(".pagnDisabled"); total_item.Size() > 0 {
+						total_text := total_item.Text()
+						if totaltemp, err := strconv.Atoi(total_text); err == nil {
+							total = totaltemp
+						}
+					}
+					next_url := ""
+					if next_page := query.Find("#pagnNextLink"); next_page.Size() > 0 {
+						if next_url_text, ok := next_page.Attr("href"); ok {
+							if !strings.Contains(next_url_text, "www.amazon.com") {
+								next_url = "http://www.amazon.com" + next_url_text
+							} else {
+								next_url = next_url_text
+							}
+						}
+					}
+					pagnCur := 0
+					if pagnCur_item := query.Find(".pagnCur"); pagnCur_item.Size() > 0 {
+						pagnCur_text := pagnCur_item.Text()
+						if pagnCurtemp, err := strconv.Atoi(pagnCur_text); err == nil {
+							pagnCur = pagnCurtemp
+						}
+					}
+					Log.Debug("next_url:" + next_url)
+					Log.Debug("total:" + strconv.Itoa(total))
+
+					Log.Debug("pagecur:" + strconv.Itoa(pagnCur))
+
+					if next_url != "" && total > 0 && pagnCur > 0 {
+						next_page_num := pagnCur + 1
+						next_page_num_text := strconv.Itoa(next_page_num)
+						for ii := 1; ii <= total; ii++ {
+							if pagnCur == ii {
+								continue
+							}
+							ii_text := strconv.Itoa(ii)
+							tempurl := strings.Replace(next_url, "page="+next_page_num_text, "page="+ii_text, -1)
+							tempurl = strings.Replace(tempurl, "ref=sr_pg_"+next_page_num_text, "ref=sr_pg_"+ii_text, -1)
+							Log.Debug("tempurl:" + tempurl)
+							ctx.AddQueue(&request.Request{
+								Url:  tempurl,
+								Rule: "list",
+							},
+							)
+						}
+					}
+					ctx.Parse("list")
+
+				},
+			},
 
 			"list": {
 				ParseFunc: func(ctx *Context) {
 
 					query := ctx.GetDom()
 					//src, _ := query.Html()
-
-					if next_page := query.Find("pagn"); next_page.Size() > 0 {
-						if next_url, ok := next_page.Attr("href"); ok {
-							if !strings.Contains(next_url, "www.amazon.com") {
-								next_url = "http://www.amazon.com" + next_url
-							}
-							ctx.AddQueue(&request.Request{
-								Url:  next_url,
-								Rule: "list",
-							},
-							)
-
-						}
-					}
 
 					lis := query.Find("li[data-asin]")
 
@@ -169,7 +212,7 @@ var Amazon = &Spider{
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
-					//src, _ := query.Html()
+					src, _ := query.Html()
 
 					//productStatus
 					productStatus := ""
@@ -398,8 +441,8 @@ var Amazon = &Spider{
 						23: dimensions_length,
 						24: dimensions_width,
 						25: dimensions_height,
-						26: "",
-						//26: src,
+						//26: "",
+						26: src,
 					})
 
 					//reviews list
