@@ -3,6 +3,7 @@ package spider_lib
 // 基础包
 import (
 	"bufio"
+	//"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -84,7 +85,7 @@ var Amazon = &Spider{
 					query := ctx.GetDom()
 					//src, _ := query.Html()
 
-					if next_page := query.Find("#pagnNextLink"); next_page.Size() > 0 {
+					if next_page := query.Find("pagn"); next_page.Size() > 0 {
 						if next_url, ok := next_page.Attr("href"); ok {
 							if !strings.Contains(next_url, "www.amazon.com") {
 								next_url = "http://www.amazon.com" + next_url
@@ -94,6 +95,7 @@ var Amazon = &Spider{
 								Rule: "list",
 							},
 							)
+
 						}
 					}
 
@@ -113,6 +115,7 @@ var Amazon = &Spider{
 							if !strings.Contains(url, "www.amazon.com") {
 								url = "http://www.amazon.com/" + url
 							}
+
 							ctx.AddQueue(
 								&request.Request{
 									Url:  url,
@@ -125,9 +128,11 @@ var Amazon = &Spider{
 									},
 								},
 							)
+
 						}
 
 					})
+
 				},
 			},
 
@@ -164,7 +169,7 @@ var Amazon = &Spider{
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
-					src, _ := query.Html()
+					//src, _ := query.Html()
 
 					//productStatus
 					productStatus := ""
@@ -272,7 +277,43 @@ var Amazon = &Spider{
 
 						})
 
+					} else if productDetails_item := query.Find("#productDetails_detailBullets_sections1 tbody tr"); productDetails_item.Size() > 0 {
+						productDetails_item.Each(func(i int, s *goquery.Selection) {
+							td_title := s.Find("th").Eq(0).Text()
+
+							if strings.Contains(td_title, "Best Sellers Rank") {
+								if tmptd := s.Find("td").Eq(0); tmptd != nil {
+									rank_text := tmptd.Text()
+									rank_arr2 := strings.Split(rank_text, "#")
+									if len(rank_arr2) > 1 {
+										mainrank_re, _ := regexp.Compile(`(\d+(,\d+){0,})\s*in\s*(.*)\s*\(`)
+										mainrank_re_arr := mainrank_re.FindAllStringSubmatch(rank_arr2[1], -1)
+										if mainrank_re_arr != nil && len(mainrank_re_arr) > 0 {
+											mainRank = mainrank_re_arr[0][1]
+											mainRank = strings.Replace(mainRank, ",", "", -1)
+											mainRankCategory = mainrank_re_arr[0][3]
+										}
+										if len(rank_arr2) >= 3 {
+											subrank_re, _ := regexp.Compile(`(\d+(,\d+){0,})\s*in\s*(.*)\s*`)
+											for ii := 2; ii < len(rank_arr2); ii++ {
+												subrank_re_arr := subrank_re.FindAllStringSubmatch(rank_arr2[ii], -1)
+												if subrank_re_arr != nil && len(subrank_re_arr) > 0 {
+													subRank_temp := subrank_re_arr[0][1]
+													subRank_temp = strings.Replace(subRank_temp, ",", "", -1)
+													subRankCategory := subrank_re_arr[0][3]
+
+													subRank[subRankCategory] = subRank_temp
+												}
+											}
+										}
+
+									}
+								}
+
+							}
+						})
 					}
+
 					/**解析产品数据***/
 					text := query.Text()
 
@@ -357,7 +398,8 @@ var Amazon = &Spider{
 						23: dimensions_length,
 						24: dimensions_width,
 						25: dimensions_height,
-						26: src,
+						26: "",
+						//26: src,
 					})
 
 					//reviews list
