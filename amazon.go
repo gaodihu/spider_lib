@@ -116,7 +116,7 @@ var Amazon = &Spider{
 					if next_url != "" && total > 0 && pagnCur > 0 {
 						next_page_num := pagnCur + 1
 						next_page_num_text := strconv.Itoa(next_page_num)
-						for ii := 1; ii <= total; ii++ {
+						for ii := 1; ii <= 1; ii++ {
 							if pagnCur == ii {
 								continue
 							}

@@ -79,6 +79,10 @@ var AmazonAll = &Spider{
 				ParseFunc: func(ctx *Context) {
 
 					query := ctx.GetDom()
+					query.Find("header").Remove()
+					query.Find("#footer").Remove()
+					query.Find("script").Remove()
+					query.Find("#navFooter").Remove()
 					pageurl := ctx.GetUrl()
 
 					is_product := false
@@ -105,22 +109,23 @@ var AmazonAll = &Spider{
 						query.Find("a").Each(func(i int, s *goquery.Selection) {
 
 							if next_url, ok := s.Attr("href"); ok {
-								url_arr, err := url.Parse(next_url)
+								if strings.Contains(next_url, "/b/") || strings.Contains(next_url, "/s/") || strings.Contains(next_url, "/dp/") {
+									url_arr, err := url.Parse(next_url)
+									if err == nil {
+										if url_arr.Host == "" {
+											ctx.AddQueue(&request.Request{
+												Url:  "http://www.amazon.com" + next_url,
+												Rule: "list",
+											},
+											)
 
-								if err == nil {
-									if url_arr.Host == "" {
-										ctx.AddQueue(&request.Request{
-											Url:  "http://www.amazon.com" + next_url,
-											Rule: "list",
-										},
-										)
-
-									} else if strings.Contains(url_arr.Host, "www.amazon.com") {
-										ctx.AddQueue(&request.Request{
-											Url:  next_url,
-											Rule: "list",
-										},
-										)
+										} else if strings.Contains(url_arr.Host, "www.amazon.com") {
+											ctx.AddQueue(&request.Request{
+												Url:  next_url,
+												Rule: "list",
+											},
+											)
+										}
 									}
 								}
 							}
