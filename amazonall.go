@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
@@ -23,7 +24,7 @@ func init() {
 }
 
 var AmazonAll = &Spider{
-	Name:         "Amazon All",
+	Name:         "AmazonAll",
 	Description:  "Amazon All商品数据 [Auto Page] [www.Amazon.com]",
 	EnableCookie: false,
 	RuleTree: &RuleTree{
@@ -106,7 +107,8 @@ var AmazonAll = &Spider{
 						})
 
 					} else {
-						query.Find("a").Each(func(i int, s *goquery.Selection) {
+						//分类页
+						query.Find("#nav-subnav a").Each(func(i int, s *goquery.Selection) {
 
 							if next_url, ok := s.Attr("href"); ok {
 								if strings.Contains(next_url, "/b/") || strings.Contains(next_url, "/s/") || strings.Contains(next_url, "/dp/") {
@@ -131,6 +133,47 @@ var AmazonAll = &Spider{
 							}
 
 						})
+						//产品页
+						lis := query.Find("li[data-asin]")
+						lis.Each(func(i int, s *goquery.Selection) {
+
+							item := s.Find(".s-access-detail-page").Eq(0)
+							if url, ok := item.Attr("href"); ok {
+
+								if !strings.Contains(url, "www.amazon.com") {
+									url = "http://www.amazon.com/" + url
+								}
+
+								ctx.AddQueue(
+									&request.Request{
+										Url:  url,
+										Rule: "list",
+									},
+								)
+
+							}
+
+						})
+
+						//下一页
+						next_page := query.Find("#pagnNextLink")
+						if next_page.Size() > 0 {
+							if next_page_url, ok := next_page.Attr("href"); ok {
+								spIA_re, _ := regexp.Compile(`&spIA\=(.*)`)
+								next_page_url = spIA_re.ReplaceAllString(next_page_url, "&spIA=")
+								if !strings.Contains(next_page_url, "www.amazon.com") {
+									next_page_url = "http://www.amazon.com/" + next_page_url
+								}
+
+								ctx.AddQueue(
+									&request.Request{
+										Url:  next_page_url,
+										Rule: "list",
+									},
+								)
+
+							}
+						}
 					}
 
 				},
