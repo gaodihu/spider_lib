@@ -141,7 +141,7 @@ var AmazonAll = &Spider{
 							if url, ok := item.Attr("href"); ok {
 
 								if !strings.Contains(url, "www.amazon.com") {
-									url = "http://www.amazon.com/" + url
+									url = "http://www.amazon.com" + url
 								}
 
 								ctx.AddQueue(
@@ -162,7 +162,7 @@ var AmazonAll = &Spider{
 								spIA_re, _ := regexp.Compile(`&spIA\=(.*)`)
 								next_page_url = spIA_re.ReplaceAllString(next_page_url, "&spIA=")
 								if !strings.Contains(next_page_url, "www.amazon.com") {
-									next_page_url = "http://www.amazon.com/" + next_page_url
+									next_page_url = "http://www.amazon.com" + next_page_url
 								}
 
 								ctx.AddQueue(
