@@ -6,8 +6,9 @@ import (
 	//"fmt"
 	"io"
 
+	"net/url"
 	"os"
-	//"regexp"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -122,11 +123,14 @@ var Amazonproduct = &Spider{
 							}
 							ii_text := strconv.Itoa(ii)
 							tempurl := strings.Replace(next_url, "page="+next_page_num_text, "page="+ii_text, -1)
-							//ref_re, _ := regexp.Compile(`ref\=(.*)\_(\d+)\?`)
-							//ref_arr := ref_re.FindAllStringSubmatch(tempurl, -1)
-							//old_ref := "ref=" + ref_arr[0][1] + "_" + ref_arr[0][2]
-							//new_ref := "ref=" + ref_arr[0][1] + "_" + ii_text
-							//tempurl = strings.Replace(tempurl, old_ref, new_ref, -1)
+							ref_re, _ := regexp.Compile(`ref=(.*)\_(\d+)(\?|\/)`)
+							ref_arr := ref_re.FindAllStringSubmatch(tempurl, -1)
+							//fmt.Println(ref_arr)
+							if ref_arr != nil {
+								old_ref := "ref=" + ref_arr[0][1] + "_" + ref_arr[0][2]
+								new_ref := "ref=" + ref_arr[0][1] + "_" + ii_text
+								tempurl = strings.Replace(tempurl, old_ref, new_ref, -1)
+							}
 							Log.Debug("tempurl:" + tempurl)
 							ctx.AddQueue(&request.Request{
 								Url:  tempurl,
@@ -136,6 +140,33 @@ var Amazonproduct = &Spider{
 						}
 					}
 					ctx.Parse("list")
+
+					//分类页
+					query.Find(".categoryRefinementsSection a").Each(func(i int, s *goquery.Selection) {
+
+						if next_url, ok := s.Attr("href"); ok {
+							if strings.Contains(next_url, "/b/") || strings.Contains(next_url, "/s/") || strings.Contains(next_url, "/dp/") {
+								url_arr, err := url.Parse(next_url)
+								if err == nil {
+									if url_arr.Host == "" {
+										ctx.AddQueue(&request.Request{
+											Url:  "http://www.amazon.com" + next_url,
+											Rule: "listpages",
+										},
+										)
+
+									} else if strings.Contains(url_arr.Host, "www.amazon.com") {
+										ctx.AddQueue(&request.Request{
+											Url:  next_url,
+											Rule: "listpages",
+										},
+										)
+									}
+								}
+							}
+						}
+
+					})
 
 				},
 			},
