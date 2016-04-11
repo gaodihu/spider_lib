@@ -96,23 +96,19 @@ var Amazonbest = &Spider{
 
 					})
 
-					pages := query.Find(".zg_pagination a")
+					pages := query.Find("#zg_paginationWrapper a")
 					pages.Each(func(i int, s *goquery.Selection) {
 						if next_url, ok := s.Attr("href"); ok {
-							if css, ok2 := s.Attr("class"); ok2 {
-								next_url = strings.Trim(next_url, " \n\r")
-								if !strings.Contains(css, "zg_selected") {
-									if !strings.Contains(next_url, "www.amazon.com") {
-										next_url = "http://www.amazon.com" + next_url
-									}
-									ctx.AddQueue(
-										&request.Request{
-											Url:  next_url,
-											Rule: "list",
-										},
-									)
-								}
+							next_url = strings.Trim(next_url, " \n\r")
+							if !strings.Contains(next_url, "www.amazon.com") {
+								next_url = "http://www.amazon.com" + next_url
 							}
+							ctx.AddQueue(
+								&request.Request{
+									Url:  next_url,
+									Rule: "list",
+								},
+							)
 
 						}
 					})
