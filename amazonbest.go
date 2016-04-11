@@ -39,7 +39,10 @@ var Amazonbest = &Spider{
 					query := ctx.GetDom()
 
 					//分类页
-					query.Find("#zg_browseRoot ul li a").Each(func(i int, s *goquery.Selection) {
+					c := query.Find("#zg_browseRoot  .zg_browseUp a")
+					c.Remove()
+
+					query.Find(" #zg_browseRoot  a").Each(func(i int, s *goquery.Selection) {
 
 						if next_url, ok := s.Attr("href"); ok {
 
