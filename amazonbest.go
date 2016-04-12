@@ -4,6 +4,7 @@ package spider_lib
 import (
 	"net/url"
 
+	//"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
@@ -42,7 +43,7 @@ var Amazonbest = &Spider{
 					c := query.Find("#zg_browseRoot  .zg_browseUp a")
 					c.Remove()
 
-					query.Find(" #zg_browseRoot  a").Each(func(i int, s *goquery.Selection) {
+					query.Find("#zg_browseRoot a").Each(func(i int, s *goquery.Selection) {
 
 						if next_url, ok := s.Attr("href"); ok {
 
@@ -75,6 +76,7 @@ var Amazonbest = &Spider{
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 
+					//product list
 					lis := query.Find("#zg_centerListWrapper .zg_itemImmersion .zg_title a")
 
 					lis.Each(func(i int, s *goquery.Selection) {
@@ -96,6 +98,7 @@ var Amazonbest = &Spider{
 
 					})
 
+					// 分页
 					pages := query.Find("#zg_paginationWrapper a")
 					pages.Each(func(i int, s *goquery.Selection) {
 						if next_url, ok := s.Attr("href"); ok {
@@ -111,6 +114,43 @@ var Amazonbest = &Spider{
 							)
 
 						}
+					})
+
+					//产品分类下级页面
+					c := query.Find("#zg_browseRoot .zg_browseUp a")
+					c.Remove()
+
+					query.Find("#zg_browseRoot a").Each(func(i int, s *goquery.Selection) {
+
+						if next_url, ok := s.Attr("href"); ok {
+
+							url_arr, err := url.Parse(next_url)
+							if err == nil {
+								cat_url := ""
+								if url_arr.Host == "" {
+									cat_url = "http://www.amazon.com" + next_url
+								} else if strings.Contains(url_arr.Host, "www.amazon.com") {
+									cat_url = next_url
+								}
+
+								if cat_url != "" {
+									ctx.AddQueue(&request.Request{
+										Url:  cat_url,
+										Rule: "list",
+									})
+									/*
+										for ii := 2; ii < 6; ii++ {
+											cat_p_url := cat_url + "&pg=" + strconv.Itoa(ii)
+											ctx.AddQueue(&request.Request{
+												Url:  cat_p_url,
+												Rule: "list",
+											})
+										}
+									*/
+								}
+							}
+						}
+
 					})
 
 				},
