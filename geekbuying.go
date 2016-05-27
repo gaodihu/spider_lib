@@ -11,7 +11,7 @@ import (
 
 	"bufio"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"io"
 	"os"
 	"path"
@@ -71,9 +71,7 @@ var GeekBuying = &Spider{
 					current_page := ctx.GetDom().Find("#pagination .current").Text()
 					current_page = strings.Trim(current_page, " \n\r")
 					if current_page != strconv.Itoa(curr) {
-						fmt.Println(current_page)
-						fmt.Println(strconv.Itoa(curr))
-						fmt.Println("p=" + strconv.Itoa(curr))
+
 						return
 					}
 					prefixUrl := ctx.GetUrl()
@@ -172,15 +170,16 @@ var GeekBuying = &Spider{
 							attrProperty[url] = s.Text()
 						}
 					})
-					fmt.Println(attrProperty)
+
 					attrPropertyJson, _ := json.Marshal(attrProperty)
 
 					//image list
 
 					query.Find("#thumbnail img").Each(func(index int, s *goquery.Selection) {
 						if src, ok := s.Attr("src"); ok {
-							bigSrc := strings.Replace(src, "make_pic", "ggo_pic", -1)
-							bigSrc = strings.Replace(src, "1.jpg", ".jpg", -1)
+							bigSrc := strings.Replace(src, "/make_pic/", "/ggo_pic/", -1)
+							bigSrc = strings.Replace(bigSrc, "1.jpg", ".jpg", -1)
+
 							imageName := sku + "/" + path.Base(bigSrc)
 							ctx.AddQueue(&request.Request{
 								Url:         bigSrc,
