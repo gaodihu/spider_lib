@@ -57,9 +57,8 @@ var Tomtop = &Spider{
 							}
 			*/
 
-			//base_url := "http://www.tomtop.com/product/freeshipping?limit=20&p=510&category="
-			for i := 1; i <= 170; i++ {
-				url := "http://www.tomtop.com/product/freeshipping?limit=60&p=" + strconv.Itoa(i) + "&category="
+			for i := 1; i <= 3; i++ {
+				url := "http://www.tomtop.com/product?q=vr&p=" + strconv.Itoa(i)
 
 				ctx.AddQueue(
 					&request.Request{
@@ -79,7 +78,7 @@ var Tomtop = &Spider{
 					query := ctx.GetDom()
 					//src, _ := query.Html()
 
-					lis := query.Find(".arrangeLess li a.publicTitle")
+					lis := query.Find(".categoryProductList a.productTitle")
 
 					lis.Each(func(i int, s *goquery.Selection) {
 
@@ -156,6 +155,7 @@ var Tomtop = &Spider{
 					"cat2",
 					"cat3",
 					"ShipFrom",
+					"mainContent",
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
@@ -220,6 +220,14 @@ var Tomtop = &Spider{
 					}
 					fmt.Println(shippingWeight)
 
+					//product group
+					mainContent := ""
+					html, _ := query.Html()
+					product_group_re, _ := regexp.Compile(`(?i)var(\s*)mainContent(\s*)\=(\s*)(.*)(\s*);(\s*)\<\/script\>`)
+					if product_group_re_Arr := product_group_re.FindAllStringSubmatch(html, -1); product_group_re_Arr != nil {
+						mainContent = product_group_re_Arr[0][4]
+					}
+
 					if lang == "en" {
 						query.Find(".productSmallPic img").Each(func(index int, s *goquery.Selection) {
 							image_url, _ := s.Attr("src")
@@ -254,16 +262,17 @@ var Tomtop = &Spider{
 
 					// 结果存入Response中转
 					ctx.Output(map[int]interface{}{
-						0: sku,
-						1: lang,
-						2: name,
-						3: desc,
-						4: price,
-						5: shippingWeight,
-						6: cat1,
-						7: cat2,
-						8: cat3,
-						9: shippingFrom,
+						0:  sku,
+						1:  lang,
+						2:  name,
+						3:  desc,
+						4:  price,
+						5:  shippingWeight,
+						6:  cat1,
+						7:  cat2,
+						8:  cat3,
+						9:  shippingFrom,
+						10: mainContent,
 					})
 
 				},
